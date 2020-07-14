@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root xmlns:android="http://schemas.android.com/apk/res/android">
+    <init>
+        <log text="GameSparks init"/>
+    </init>
+	
+	<gameActivityImportAdditions>
+		<insert>
+import java.util.*;
+import java.security.*;
+import java.security.cert.*;
+		</insert>
+	</gameActivityImportAdditions>
+  
+    <gameActivityClassAdditions>
+		<insert><![CDATA[
+    public static int numCerts = 0;
+    public static byte[] certsEncoded = null;
+    public static int[] certsLength = null;
+
+    public static void getCertificates() {
+        int i = 0;
+        int length;
+        int totalLength = 0;
+        ArrayList<byte[]> certificates = new ArrayList<byte[]>();
+
+        try {
+            KeyStore ks = KeyStore.getInstance("AndroidCAStore");
+
+            ks.load(null, null);
+
+            Enumeration<String> aliases = ks.aliases();
+
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                X509Certificate cert = (X509Certificate)ks.getCertificate(alias);
+                byte[] encoded = cert.getEncoded();
+
+                //Log.debug("Subject DN: " + cert.getSubjectDN().getName());
+                //Log.debug("Issuer DN: " + cert.getIssuerDN().getName());
+
+                certificates.add(encoded);
+            }
+
+            numCerts = certificates.size();
+
+            certsLength = new int[numCerts];
+
+            for (byte[] encoded : certificates) {
+                length = encoded.length;
+
+                certsLength[i ++] = length;
+
+                totalLength += length;
+            }
+
+            certsEncoded = new byte[totalLength];
+
+            i = 0;
+            totalLength = 0;
+
+            for (byte[] encoded : certificates) {
+                length = certsLength[i ++];
+
+                System.arraycopy(encoded, 0, certsEncoded, totalLength, length);
+
+                totalLength += length;
+            }
+        } catch (Exception e) {
+            Log.debug(e.toString());
+        }
+    }
+		]]></insert>
+	</gameActivityClassAdditions>
+</root>
